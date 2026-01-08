@@ -54,6 +54,9 @@ export function renderMatchScoring(matchId) {
       break;
     }
   }
+  
+  // Check if match is complete (one player won 2 sets)
+  const matchComplete = player1Sets >= 2 || player2Sets >= 2;
 
   return `
     <div class="min-h-screen p-6 fade-in">
@@ -128,12 +131,12 @@ export function renderMatchScoring(matchId) {
                     <div class="flex gap-3">
                       <button class="score-btn bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-xl disabled:opacity-30 disabled:cursor-not-allowed score-minus-btn" 
                               data-player="player1" data-set="${setIndex}"
-                              ${!isCurrentSet || p1Score === 0 ? 'disabled' : ''}>
+                              ${!isCurrentSet || p1Score === 0 || matchComplete ? 'disabled' : ''}>
                         −
                       </button>
                       <button class="score-btn bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-xl disabled:opacity-30 disabled:cursor-not-allowed score-plus-btn" 
                               data-player="player1" data-set="${setIndex}"
-                              ${!isCurrentSet ? 'disabled' : ''}>
+                              ${!isCurrentSet || matchComplete ? 'disabled' : ''}>
                         +
                       </button>
                     </div>
@@ -148,12 +151,12 @@ export function renderMatchScoring(matchId) {
                     <div class="flex gap-3">
                       <button class="score-btn bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-xl disabled:opacity-30 disabled:cursor-not-allowed score-minus-btn" 
                               data-player="player2" data-set="${setIndex}"
-                              ${!isCurrentSet || p2Score === 0 ? 'disabled' : ''}>
+                              ${!isCurrentSet || p2Score === 0 || matchComplete ? 'disabled' : ''}>
                         −
                       </button>
                       <button class="score-btn bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-xl disabled:opacity-30 disabled:cursor-not-allowed score-plus-btn" 
                               data-player="player2" data-set="${setIndex}"
-                              ${!isCurrentSet ? 'disabled' : ''}>
+                              ${!isCurrentSet || matchComplete ? 'disabled' : ''}>
                         +
                       </button>
                     </div>

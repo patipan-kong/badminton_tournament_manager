@@ -50,7 +50,10 @@ export function renderTournamentList() {
                     <span class="px-4 py-2 bg-gradient-to-r from-blue-500/30 to-purple-500/30 
                                  rounded-full text-sm font-semibold backdrop-blur-sm 
                                  border border-blue-400/30 hover:border-blue-400/60 
-                                 transition-all duration-300 hover:scale-110">${mode}</span>
+                                 transition-all duration-300 hover:scale-110 cursor-pointer
+                                 mode-badge"
+                          data-tournament-id="${tournament.id}"
+                          data-mode="${mode}">${mode}</span>
                   `).join('')}
                 </div>
               </div>
@@ -234,6 +237,19 @@ export function attachTournamentListListeners() {
             e.target.reset();
         });
     }
+
+    // Mode badge click - direct to mode detail (must be before tournament click to work properly)
+    const modeBadges = document.querySelectorAll('.mode-badge');
+    modeBadges.forEach(badge => {
+        badge.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent tournament item click
+            const tournamentId = badge.dataset.tournamentId;
+            const mode = badge.dataset.mode;
+            store.setCurrentTournament(tournamentId);
+            store.setCurrentMode(mode);
+            window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'mode-detail' } }));
+        });
+    });
 
     // Tournament selection
     const tournamentItems = document.querySelectorAll('.tournament-item');

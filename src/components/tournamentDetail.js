@@ -42,6 +42,46 @@ export function renderTournamentDetail() {
           ${tournament.modes.map((mode, index) => {
         const playerCount = tournament.participants[mode]?.length || 0;
         const hasDrawn = tournament.brackets[mode] !== null;
+        const bracket = tournament.brackets[mode];
+        const matches = tournament.matches[mode] || [];
+        
+        // Determine tournament status
+        let statusInfo = { text: 'Awaiting draw', icon: '⏳', color: 'yellow' };
+        
+        if (hasDrawn && bracket) {
+          // Check if tournament is complete (final match completed)
+          const finalMatch = matches.find(m => m.round === bracket.numRounds);
+          if (finalMatch && finalMatch.status === 'completed') {
+            statusInfo = { 
+              text: `Winner: ${finalMatch.winner?.name}`, 
+              icon: '🏆', 
+              color: 'gold' 
+            };
+          } else {
+            // Find current round being played
+            let currentRound = 1;
+            for (let round = 1; round <= bracket.numRounds; round++) {
+              const roundMatches = matches.filter(m => m.round === round);
+              const allCompleted = roundMatches.every(m => m.status === 'completed');
+              const anyInProgress = roundMatches.some(m => m.status === 'completed' || (m.player1 && m.player2));
+              
+              if (!allCompleted && anyInProgress) {
+                currentRound = round;
+                break;
+              } else if (allCompleted) {
+                currentRound = round + 1;
+              }
+            }
+            
+            const roundName = getRoundName(currentRound, bracket.numRounds);
+            statusInfo = { 
+              text: `Playing: ${roundName}`, 
+              icon: '🎾', 
+              color: 'blue' 
+            };
+          }
+        }
+        
         const modeColors = {
           'MS': 'from-blue-500/30 to-blue-600/30 border-blue-400/50',
           'WS': 'from-pink-500/30 to-pink-600/30 border-pink-400/50',
@@ -63,22 +103,25 @@ export function renderTournamentDetail() {
                         <span class="text-xl">👥</span>
                         <span class="font-semibold">${playerCount} player${playerCount !== 1 ? 's' : ''}</span>
                       </div>
-                      ${hasDrawn ? `
-                        <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-green-500/20 border border-green-400/30">
-                          <span class="text-xl">✅</span>
-                          <span class="font-semibold text-green-300">Draw completed</span>
-                        </div>
-                      ` : `
-                        <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-yellow-500/20 border border-yellow-400/30">
-                          <span class="text-xl">⏳</span>
-                          <span class="font-semibold text-yellow-300">Awaiting draw</span>
-                        </div>
-                      `}
+                      <div class="flex items-center gap-2 px-3 py-1 rounded-lg ${
+                        statusInfo.color === 'gold' ? 'bg-yellow-500/20 border border-yellow-400/30' :
+                        statusInfo.color === 'blue' ? 'bg-blue-500/20 border border-blue-400/30' :
+                        statusInfo.color === 'yellow' ? 'bg-yellow-500/20 border border-yellow-400/30' :
+                        'bg-green-500/20 border border-green-400/30'
+                      }">
+                        <span class="text-xl">${statusInfo.icon}</span>
+                        <span class="font-semibold ${
+                          statusInfo.color === 'gold' ? 'text-yellow-300' :
+                          statusInfo.color === 'blue' ? 'text-blue-300' :
+                          statusInfo.color === 'yellow' ? 'text-yellow-300' :
+                          'text-green-300'
+                        }">${statusInfo.text}</span>
+                      </div>
                     </div>
                   </div>
                   <button class="mode-select-btn btn-secondary group" data-mode="${mode}">
                     <span class="inline-flex items-center gap-2">
-                      Enter Mode
+                      Enter
                       <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                       </svg>
@@ -114,6 +157,13 @@ function getModeIcon(mode) {
         'XD': '👫'
     };
     return icons[mode] || '🏸';
+}
+
+function getRoundName(round, totalRounds) {
+    if (round === totalRounds) return 'Final';
+    if (round === totalRounds - 1) return 'Semi-Final';
+    if (round === totalRounds - 2) return 'Quarter-Final';
+    return `Round ${round}`;
 }
 
 export function attachTournamentDetailListeners() {
